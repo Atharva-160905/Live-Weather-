@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <div class="search">
+            <input type="text" placeholder="enter the city" spellcheck="false">
+            <button><img src="images/search.png"></button>
+        </div>
+        <div class="error">Invalid City Name</div>
+        <div class="weather">
+            <img src="images/rain.png" class="weather-icon">
+            <h1 class="temp">22°c</h1>
+            <h2 class="city">New York</h2>
+            <div class="details">
+                <div class="col">
+                    <img src="images/humidity.png">
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="images/wind.png">
+                    <div>
+                        <p class="wind">15km/hr</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="air-pollution">
+                <h3 class="air-font">Air Pollution</h3>
+                <p class="aqi">AQI: N/A</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const apiKey = "28ae8dc45cd400c5d43633405d9b3186";
+        const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+        const airPollutionUrl = "http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid=" + apiKey;
+        const searchBox = document.querySelector(".search input");
+        const searchBtn = document.querySelector(".search button");
+        const weatherIcon = document.querySelector(".weather-icon");
+
+        async function checkWeather(city) {
+            const response = await fetch(apiUrl + city + `&appid=${apiKey}`);
+            if (response.status == 404) {
+                document.querySelector(".error").style.display = "block";
+                document.querySelector(".weather").style.display = "none";
+            } else {
+                const data = await response.json();
+                document.querySelector(".city").innerText = data.name;
+                document.querySelector(".temp").innerText = Math.round(data.main.temp) + "°c";
+                document.querySelector(".humidity").innerText = data.main.humidity + "%";
+                document.querySelector(".wind").innerText = data.wind.speed + "km/hr";
+                updateWeatherIcon(data.weather[0].main.toLowerCase());
+                document.querySelector(".weather").style.display = "block";
+                document.querySelector(".error").style.display = "none";
+                checkAirPollution(data.coord.lat, data.coord.lon);
+            }
+        }
+
+        function updateWeatherIcon(weather) {
+            if (weather == "clouds") {
+                weatherIcon.src = "images/clouds.png";
+            } else if (weather == "rain") {
+                weatherIcon.src = "images/rain.png";
+            } else if (weather == "clear") {
+                weatherIcon.src = "images/clear.png";
+            } else if (weather == "drizzle") {
+                weatherIcon.src = "images/drizzle.png";
+            } else if (weather == "mist") {
+                weatherIcon.src = "images/mist.png";
+            } else if (weather == "snow") {
+                weatherIcon.src = "images/snow.png";
+            } else if (weather == "thunderstorm") {
+                weatherIcon.src = "images/thunderstorm.png";
+            } else {
+                weatherIcon.src = "images/clouds.png";
+            }
+        }
+
+        async function checkAirPollution(lat, lon) {
+            const response = await fetch(airPollutionUrl.replace("{lat}", lat).replace("{lon}", lon));
+            const data = await response.json();
+            document.querySelector(".aqi").innerText = "AQI: " + data.list[0].main.aqi;
+        }
+
+        searchBtn.addEventListener("click", function() {
+            checkWeather(searchBox.value);
+        });
+
+        checkWeather();
+    </script>
+</body>
+</html>
